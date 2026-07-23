@@ -160,4 +160,4 @@ agentic/
 
 - **Author:** Alexey Sudachan
 - **License:** MIT
-- **Original GitHub Repo:** [github.com/sudachen/agentic](https://github.com/sudachen/agentic-workflow)
+- **Original GitHub Repo:** https://github.com/sudachen/agentic

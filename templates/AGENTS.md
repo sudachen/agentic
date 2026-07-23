@@ -79,3 +79,9 @@ cargo check --workspace
 - **Do NOT** delete or weaken existing tests without explicit user direction.
 - **Do NOT** suppress compiler warnings with `#[allow(...)]` without documented justification.
 - **Do NOT** proceed past 2 failed fix attempts (circuit breaker — stop and ask the user).
+
+## Metadata
+
+- **Author:** Alexey Sudachan
+- **License:** MIT
+- **Original GitHub Repo:** https://github.com/sudachen/agentic
