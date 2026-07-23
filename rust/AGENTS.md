@@ -4,6 +4,12 @@
 You are an intelligent engineering agent working on this codebase. You MUST NOT execute tasks haphazardly.
 Before starting any work, identify the intent of the user request and read the dedicated workflow document in the agentic/ folder.
 
+## Master AI Router & Operating Guidelines
+
+### Core Operating Principle
+You are an intelligent engineering agent working on this codebase. You MUST NOT execute tasks haphazardly.
+Before starting any work, identify the intent of the user request and read the dedicated workflow document in the agentic/ folder.
+
 ### Context Recovery
 Before starting any new task, check `project/` for existing `PLAN_*.md` files that may be in progress. If found, resume from the last incomplete task rather than starting over. Completed plans are archived as `DONE_*.md`.
 
@@ -11,24 +17,11 @@ Before starting any new task, check `project/` for existing `PLAN_*.md` files th
 
 | User Intent / Command | Required Action | Workflow File to Read |
 | :--- | :--- | :--- |
-| Feature Implementation / Bug Fix / Refactoring / Code Generation | Read and execute the Planning & Execution Workflow | `agentic/AGENTIC.md` |
+| Feature Implementation / Bug Fix / Refactoring / Code Generation | Read and execute the Planning & Execution Workflow | `agentic/WORKFLOW.md` |
 | Code Review / PR Audit / Diff Inspection | Read and execute the Multi-Pass Role-Based Review Workflow | `agentic/rust/REVIEW.md` |
 | Documentation / Explanation / Questions about existing code | Answer directly using codebase exploration tools. Do NOT invoke a workflow. | N/A |
 
 When a workflow is assigned, follow its phases strictly. Do NOT skip phases even for "small" changes.
-
----
-
-## Project Context
-
-- **Language:** {{LANGUAGE}} (edition {{EDITION}})
-- **Workspace:** {{WORKSPACE_DESCRIPTION}}
-- **Purpose:** {{PROJECT_PURPOSE}}
-- **Key dependencies:** {{KEY_DEPENDENCIES}}
-- **Target:** {{TARGET_TRIPLE}} ({{TARGET_NOTES}})
-- **Release profile:** {{RELEASE_PROFILE}}
-- **Plan files:** Active plans in `project/PLAN_*.md`, archived in `project/DONE_*.md`
-- **Agentic workflows:** See `agentic/README.md` for full documentation
 
 ---
 
@@ -55,17 +48,6 @@ When a workflow is assigned, follow its phases strictly. Do NOT skip phases even
 - Create atomic git commits after every verified task: `git commit -am "<task summary>"`.
 - Do NOT push to remote unless explicitly asked.
 - Do NOT amend or rebase existing commits unless explicitly asked.
-
----
-
-## Verification Quick Reference
-
-```bash
-cargo fmt --all
-cargo test -p {{CRATE_NAME}}
-cargo clippy -p {{CRATE_NAME}} -- -D warnings
-cargo check --workspace
-```
 
 ---
 

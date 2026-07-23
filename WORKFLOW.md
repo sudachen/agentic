@@ -1,4 +1,4 @@
-# AGENTIC.md
+# WORKFLOW.md
 
 This document defines the strict workflow for implementing new features in this project.
 Every new feature must follow these phases in order to ensure quality, avoid infinite loops, and maintain a clean history.
@@ -25,7 +25,7 @@ Create a single plan and tracking file in the `project/` directory at the reposi
 - **Naming convention:** `PLAN_<short_readable_name>.md`
   - Example: `PLAN_analytics_integration.md`
 - **Workflow Reference:** The file MUST start with a blockquote linking back to this document:
-  `> **Note:** This plan is executed according to the strict workflow rules defined in [AGENTIC.md](agentic/AGENTIC.md).`
+  `> **Note:** This plan is executed according to the strict workflow rules defined in [WORKFLOW.md](agentic/WORKFLOW.md).`
 - The plan file must contain the following sections:
   1. **Feature Summary:** One-paragraph description of what is being built.
   2. **Scope:** What is included and explicitly excluded. 
@@ -165,7 +165,7 @@ Feature Request
 ```text
 k4dpi/
 ├── agentic /
-│   └── AGENTIC.md                       ← this file
+│   └── WORKFLOW.md                       ← this file
 ├── project/
 │   ├── PLAN_analytics_integration.md    ← active feature plan
 │   └── DONE_dpi_rule_editor.md          ← completed, archived plan

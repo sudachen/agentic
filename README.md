@@ -6,7 +6,7 @@ A structured AI agent operating framework for Systems/Baremetal Rust projects. I
 
 The agentic workflow provides two core processes:
 
-### 1. Feature Implementation & Engineering (`AGENTIC.md`)
+### 1. Feature Implementation & Engineering (`WORKFLOW.md`)
 
 A 5-phase pipeline that governs how AI agents implement features, fix bugs, and refactor code:
 
@@ -48,16 +48,69 @@ Each role file contains: persona definition, 5-pillar inspection checklist, 4 an
 ```markdown
 | User Intent / Command | Required Action | Workflow File to Read |
 | :--- | :--- | :--- |
-| Feature Implementation / Bug Fix / Refactoring | Read and execute the Planning & Execution Workflow | agentic/AGENTIC.md |
+| Feature Implementation / Bug Fix / Refactoring | Read and execute the Planning & Execution Workflow | agentic/WORKFLOW.md |
 | Code Review / PR Audit / Diff Inspection | Read and execute the Multi-Pass Role-Based Review Workflow | agentic/rust/REVIEW.md |
 ```
 
 3. Ensure your project has a `project/` directory at the root for plan files.
 
+### Windsurf Setup
+
+Windsurf (Codeium's IDE with the Cascade AI agent) supports global rules via a `.windsurfrules` file at the repository root and slash-command shortcuts via `.windsurf/workflows/`. To set up a Windsurf project to use the agentic workflow:
+
+1. **Copy the `agentic/` directory** into your repository root (if not already present):
+   ```bash
+   cp -r agentic/ /path/to/your-repo/agentic/
+   ```
+
+2. **Generate the rules file** from the Windsurf template:
+   ```bash
+   cp agentic/rust/AGENTS.md /path/to/your-repo/.windsurfrules
+   ```
+ 
+3. **Verify all placeholders are filled**:
+   ```bash
+   grep '{{' /path/to/your-repo/.windsurfrules && echo "Unfilled placeholders found!" || echo "All placeholders filled."
+   ```
+
+4. **Create slash-command shortcuts** in `.windsurf/workflows/` for quick access to the agentic workflows:
+   ```bash
+   mkdir -p /path/to/your-repo/.windsurf/workflows
+   ```
+   Create `.windsurf/workflows/feature.md`:
+   ```markdown
+   ---
+   description: Implement a feature, fix a bug, or refactor code
+   ---
+   Read and execute the workflow defined in `agentic/WORKFLOW.md`.
+   ```
+   Create `.windsurf/workflows/review.md`:
+   ```markdown
+   ---
+   description: Review code, audit a PR, or inspect a diff
+   ---
+   Read and execute the workflow defined in `agentic/rust/REVIEW.md`.
+   ```
+   These enable `/feature` and `/review` slash commands in the Windsurf chat panel.
+
+5. **Create the `project/` directory** for plan files:
+   ```bash
+   mkdir -p /path/to/your-repo/project
+   ```
+
+6. **Commit everything** to your repository:
+   ```bash
+   cd /path/to/your-repo
+   git add agentic/ .windsurfrules .windsurf/ project/
+   git commit -m "Add agentic workflow with Windsurf integration"
+   ```
+
+Once set up, the Cascade agent in Windsurf will automatically read `.windsurfrules` as global rules and route feature requests to `agentic/WORKFLOW.md` and review requests to `agentic/rust/REVIEW.md`. You can also use the `/feature` and `/review` slash commands to trigger the workflows explicitly.
+
 ### Triggering the Feature Workflow
 
 Tell your AI agent to implement a feature, fix a bug, or refactor code. The agent will:
-1. Read `agentic/AGENTIC.md`.
+1. Read `agentic/WORKFLOW.md`.
 2. Ask clarifying questions (Phase 1).
 3. Create a `project/PLAN_<name>.md` file (Phase 2).
 4. Execute tasks one by one with verification and commits (Phases 3–4).
@@ -77,52 +130,21 @@ Each role file in `rust/review_roles/` is self-contained. To customize:
 - **Add a new role:** Create a new `.md` file following the same structure (Persona, Checklist, Anti-Patterns, Best Practices, Severity Criteria), then add a routing row in `REVIEW.md`'s Stage 1 table and a JIT loading instruction in Stage 2.
 - **Modify an existing role:** Edit the corresponding `.md` file directly. All code examples use concrete types (not bare generics) to ensure correct markdown rendering.
 
-## Generating `AGENTS.md` for Your Project
+## Generating Agent Rules for Your Project
 
-The `AGENTS.md` file is the entry point that routes your AI agent to the correct workflow. A template is provided at `agentic/templates/AGENTS.md` with placeholders for project-specific values.
+The agent rules file is the entry point that routes your AI agent to the correct workflow. Templates are provided with placeholders for project-specific values:
 
-### Placeholder Reference
+- **Generic agents:** `agentic/rust/AGENTS.md` → copy to repository root as `AGENTS.md`
+- **Windsurf (Cascade):** `agentic/rust/AGENTS.md` → copy to repository root as `.windsurfrules`
 
-| Placeholder | Description | Example |
-|:---|:---|:---|
-| `{{LANGUAGE}}` | Primary programming language | `Rust` |
-| `{{EDITION}}` | Language edition or version | `2024` |
-| `{{WORKSPACE_DESCRIPTION}}` | Workspace layout and crate names | `Single crate crates/myapp (binary: myapp)` |
-| `{{PROJECT_PURPOSE}}` | One-line project description | `HTTP API gateway for internal services` |
-| `{{KEY_DEPENDENCIES}}` | Comma-separated key crates/libraries | `tokio, axum, serde, clap` |
-| `{{TARGET_TRIPLE}}` | Compile target triple | `x86_64-unknown-linux-musl` |
-| `{{TARGET_NOTES}}` | Target-specific notes | `static linking via vendored OpenSSL` |
-| `{{RELEASE_PROFILE}}` | Release profile settings | `opt-level=3, lto=fat, codegen-units=1, panic=abort` |
-| `{{CRATE_NAME}}` | Primary crate name for test/clippy commands | `myapp` |
+Copy the appropriate template to your repository root:
+```bash
+# For generic AI agents:
+cp agentic/rust/AGENTS.md ./AGENTS.md
 
-### Steps
-
-1. Copy the template to your repository root:
-   ```bash
-   cp agentic/templates/AGENTS.md ./AGENTS.md
-   ```
-2. Replace every `{{PLACEHOLDER}}` with your project's values. You can do this:
-   - **Manually:** Open `AGENTS.md` in your editor and fill in each placeholder.
-   - **With sed:**
-     ```bash
-     sed -i \
-       -e 's|{{LANGUAGE}}|Rust|g' \
-       -e 's|{{EDITION}}|2024|g' \
-       -e 's|{{WORKSPACE_DESCRIPTION}}|Single crate crates/myapp (binary: myapp)|g' \
-       -e 's|{{PROJECT_PURPOSE}}|HTTP API gateway for internal services|g' \
-       -e 's|{{KEY_DEPENDENCIES}}|tokio, axum, serde, clap|g' \
-       -e 's|{{TARGET_TRIPLE}}|x86_64-unknown-linux-musl|g' \
-       -e 's|{{TARGET_NOTES}}|static linking via vendored OpenSSL|g' \
-       -e 's|{{RELEASE_PROFILE}}|opt-level=3, lto=fat, codegen-units=1, panic=abort|g' \
-       -e 's|{{CRATE_NAME}}|myapp|g' \
-       AGENTS.md
-     ```
-   - **With your AI agent:** Ask your agent to read the template and fill in the placeholders based on your project's `Cargo.toml` and workspace structure.
-3. Verify that all placeholders have been replaced (no `{{` remaining):
-   ```bash
-   grep '{{' AGENTS.md && echo "Unfilled placeholders found!" || echo "All placeholders filled."
-   ```
-4. Commit the generated `AGENTS.md` to your repository.
+# For Windsurf:
+cp agentic/rust/AGENTS.md ./.windsurfrules
+```
 
 ### Customizing the Template
 
@@ -136,18 +158,17 @@ The template covers the common case for Rust systems projects. You may need to a
 
 ```text
 agentic/
-├── AGENTIC.md                          ← Feature implementation workflow (5 phases)
-├── README.md                           ← This file
-├── templates/
-│   └── AGENTS.md                       ← Template for project-root AGENTS.md
+├── WORKFLOW.md                   ← Feature implementation workflow (5 phases)
+├── README.md                     ← This file
 └── rust/
-    ├── REVIEW.md                       ← Multi-pass role-based review workflow (3 stages)
+    ├── REVIEW.md                 ← Multi-pass role-based review workflow (3 stages)
+    ├── AGENTS.md                 ← Template for project-root AGENTS.md (generic agents)
     └── review_roles/
-        ├── unsafe_expert.md            ← Unsafe Soundness Expert role
-        ├── concurrency.md              ← Concurrency Expert role
-        ├── architecture.md             ← Principal Systems Architect role
-        ├── embedded.md                 ← Embedded Baremetal Expert role
-        └── cross_cutting.md            ← Cross-Cutting Integration Expert role
+        ├── unsafe_expert.md      ← Unsafe Soundness Expert role
+        ├── concurrency.md        ← Concurrency Expert role
+        ├── architecture.md       ← Principal Systems Architect role
+        ├── embedded.md           ← Embedded Baremetal Expert role
+        └── cross_cutting.md      ← Cross-Cutting Integration Expert role
 ```
 
 ## Requirements
