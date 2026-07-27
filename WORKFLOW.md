@@ -305,11 +305,11 @@ Feature Request
       │
       ▼
 ┌─────────────────────────────────────────┐
-│ Phase 0: Resume In-Progress Plans       │  ← Resume or start fresh
+│ Phase 0: Preflight & Context Recovery   │  ← Resume, pause, or start fresh
 └────────────────────┬────────────────────┘
                      ▼
 ┌─────────────────────────────────────────┐
-│ Phase 1: Clarify Ambiguities            │  ← Ask user before writing plan
+│ Phase 1: Triage & Handle Ambiguity      │  ← Ask user only for blocking items
 └────────────────────┬────────────────────┘
                      ▼
 ┌─────────────────────────────────────────┐
