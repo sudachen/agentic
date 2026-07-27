@@ -176,12 +176,27 @@ Status rules:
 - Only the circuit breaker may set `blocked`. A `blocked` task resumes when the user provides guidance.
 - Only the user may direct a task to `skipped`.
 
+### Specification-Change Categories
+
+Phase 3 work reveals four kinds of change to a task's Specification. Record every instance in the Execution Log's Changes & Decisions field with the date.
+
+- **Implementation refinement:** A change to how the task meets its existing goal. Update the Specification in place. No user approval required.
+- **Discovered constraint:** A build, toolchain, or dependency limit found during implementation. Record it in Discovered Gotchas & Constraints and adjust the Technical Details & Contracts. No user approval required.
+- **Acceptance-criterion change:** A change to how the plan verifies success. Requires explicit user approval before the task continues.
+- **Scope change:** A change to what the plan includes or excludes. Requires explicit user approval before the task continues.
+
 ### The Testing Triad Mandate
 
-Every non-trivial code modification MUST include automated tests covering:
+Every task that changes executable code MUST include automated tests covering:
 - **Happy Path:** Expected successful execution under standard conditions.
 - **Edge Cases:** Boundary values, empty inputs, maximum capacity limits, unusual unicode, etc.
 - **Negative Cases:** Invalid inputs, missing dependencies, I/O failures, expected Err or Panic states.
+
+Apply each category when it fits the task's domain. Map integration checks, security checks, migration checks, and property tests to Edge Cases or Negative Cases when the task touches integration points, security controls, data migrations, or invariant-heavy logic.
+
+A task that changes only documentation, comments, or non-executable configuration is exempt from the Testing Triad Mandate.
+Record every exemption in the Execution Log's Verification field with the reason.
+A High-Risk Category task is never exempt.
 
 ---
 
