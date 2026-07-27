@@ -1,7 +1,7 @@
 # STYLE.md
 
 This document defines the Writing Style Standard for this project.
-Plans, reviews, and documentation produced under [WORKFLOW.md](WORKFLOW.md) and [rust/REVIEW.md](rust/REVIEW.md) must follow these ASD-STE100-inspired rules.
+Plans, reviews, and documentation produced under [WORKFLOW.md](WORKFLOW.md) must follow these ASD-STE100-inspired rules.
 Technical nomenclature (crate names, type names, function names, tool names) is exempt.
 
 - Use active voice. Do not use passive voice.

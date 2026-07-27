@@ -335,7 +335,7 @@ Feature Request
 ## Directory Structure
 
 ```text
-k4dpi/
+project-root/
 ├── agentic/
 │   ├── WORKFLOW.md                       ← this file
 │   ├── STYLE.md                          ← writing style standard
@@ -347,7 +347,7 @@ k4dpi/
 │   └── python/
 │       └── PYTHON_WORKFLOW.md            ← Python-specific Phase 4 commands
 ├── project/
-│   ├── PLAN_analytics_integration.md    ← active feature plan
-│   └── DONE_dpi_rule_editor.md          ← completed, archived plan
+│   ├── PLAN_new_feature.md               ← active feature plan
+│   └── DONE_some_changes.md              ← completed, archived plan
 └── ...
 ```

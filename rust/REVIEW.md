@@ -1,6 +1,8 @@
 ## Overview & Core Principles
 This document defines the agentic workflow for conducting multi-pass, role-based code reviews in Systems/Baremetal Rust.
 
+> **Note:** All review documents produced under this workflow follow [STYLE.md](../STYLE.md).
+
 The review process MUST NOT be executed in a single broad pass. Instead, it operates strictly in three sequential stages:
 1. **Plan Generation** (`REVIEW_PLAN.md`) references [REVIEW.md](agentic/rust/REVIEW.md).
 2. **Role-Based Incremental Execution** (`INTERMEDIATE_REVIEW.md`) references `REVIEW_PLAN.md` and [REVIEW.md](agentic/rust/REVIEW.md)
