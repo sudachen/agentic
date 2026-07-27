@@ -72,11 +72,22 @@ Phase 5 always runs the Final gate before archiving a plan.
 
 ---
 
-## Phase 0 — Resume In-Progress Plans
+## Phase 0 — Preflight and Context Recovery
 
-Before starting any new work, list the `project/` directory for in-progress `PLAN_*.md` files.
-If one exists, resume from its last incomplete task.
-Only one plan may be in progress at a time. Do not create a new plan while another plan is active.
+Before starting any new work, run these checks in order:
+
+1. **Repository check:** Confirm the current directory is inside a Git repository. Stop and ask the user if it is not.
+2. **Branch check:** Record the current branch name in the plan's Branch field.
+3. **Worktree check:** Run `git status --porcelain`. If it reports changes, record each changed file in the Discovered Gotchas & Constraints section as a pre-existing change before making any edit. Never attribute a pre-existing change to a new task, and never stage a pre-existing change as part of a task commit.
+4. **Plan check:** List the `project/` directory for `PLAN_*.md` files, then apply the first matching rule:
+   - A plan with Status `active` and a Branch matching the current branch: resume it from its last incomplete task.
+   - A plan with a Branch that does not match the current branch: leave it untouched. It never blocks work on the current branch.
+   - A plan with Status `blocked`: ask the user for guidance before resuming it.
+   - A plan with Status `paused`: ask the user whether to resume it or start a new plan.
+   - A plan with a Last Update more than 14 days old: set its Status to `stale` and ask the user to resume, pause, or discard it.
+   - No matching plan exists: proceed to Phase 1 to start a new plan.
+
+Do not create a new plan on a branch that already has a plan with Status `active`.
 
 ---
 
