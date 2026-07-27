@@ -91,17 +91,20 @@ Do not create a new plan on a branch that already has a plan with Status `active
 
 ---
 
-## Phase 1 — Clarify Ambiguities and Propose Improvements
+## Phase 1 — Triage and Handle Ambiguity
 
 Before writing any code, the agent must:
 
-- **Identify ambiguities** in the feature request — unclear requirements, missing edge cases, undefined behavior, conflicting constraints.
+- **Classify risk.** Check the request against the High-Risk Categories in Change Tiers. Record the matched category, or `standard-risk` if none matches.
+- **Identify blocking ambiguities.** A blocking ambiguity is a requirement gap that changes the feature's scope, acceptance criteria, or public interface depending on its answer.
+- **Identify safe assumptions.** A safe assumption is a reasonable default that changes neither scope, acceptance criteria, nor public interface. Record it in the plan instead of asking the user.
+- **Identify discoverable questions.** A discoverable question has an answer available in the codebase, existing documentation, or version control history. Answer it through exploration instead of asking the user.
 - **Identify design issues** — potential architectural concerns, performance implications, security risks, or maintainability problems.
 - **Propose improvements** — suggest better alternatives, simpler approaches, or critical consequences the user may not have considered.
-- **Ask the user** to clarify each ambiguity or choose between proposed options.
+- **Ask the user** to resolve every blocking ambiguity and to choose between proposed options.
 
-Do **not** proceed to planning until all ambiguities are resolved.
-Record every resolved clarification and decision in the plan's Feature Summary and Scope sections.
+Do **not** proceed to planning until every blocking ambiguity is resolved.
+Record every resolved clarification, safe assumption, and decision in the plan's Feature Summary and Scope sections.
 Fresh-context sessions rely on this record.
 
 ---
@@ -115,7 +118,8 @@ Create a single plan and tracking file in the `project/` directory at the reposi
 - **Workflow Reference:** The file MUST start with a blockquote linking back to this document:
   `> **Note:** This plan is executed according to the strict workflow rules defined in [WORKFLOW.md](agentic/WORKFLOW.md).`
 - **Link base:** Write relative links in plan files with the repository root as the base.
-- The plan file must contain the following sections:
+- **Plan metadata:** Directly below the Workflow Reference blockquote, record the Plan Lifecycle metadata: Branch, Owner, Status, Risk Tier, Verification Tier, and Last Update.
+- A **Standard change** plan file must contain the following sections:
   1. **Feature Summary:** One-paragraph description of what is being built.
   2. **Scope:** What is included and explicitly excluded. 
   3. **Architecture & Technical Blueprint:** High-level architectural decisions, data structures, type signatures, and module boundaries. Must provide enough detail for a fresh AI session to understand the overall design without prior chat context. 
@@ -124,10 +128,16 @@ Create a single plan and tracking file in the `project/` directory at the reposi
   6. **Dependencies:** Packages, modules, or external systems affected. 
   7. **Acceptance Criteria:** How to know the feature is complete (including passing test criteria). 
   8. **Discovered Gotchas & Constraints:** A running log of unexpected build/toolchain constraints, architectural rules, or unwritten project conventions discovered during execution.
+- A **Minor change** plan file contains only:
+  1. **Feature Summary:** One-paragraph description of what is being built, including the plan metadata.
+  2. **Execution Tasks:** The task list from Phase 3. State the Triad Test Plan inside each task's Technical Details & Contracts field instead of writing a separate Testing Strategy section.
+  A Minor change plan omits the standalone Architecture & Technical Blueprint, Testing Strategy, Dependencies, Acceptance Criteria, and Discovered Gotchas & Constraints sections. It never omits the Triad Test Plan itself.
+- A High-Risk Category always uses the Standard change plan sections, regardless of file count or line count.
 
 After Phase 2, each task's Specification is fixed.
 Amend it only in place, with a dated note describing the deviation.
-Changes to the plan's scope require explicit user re-approval.
+Changes to the plan's scope or acceptance criteria require explicit user re-approval.
+Implementation refinements and constraints discovered during Phase 3 may update a task's Technical Details & Contracts when the plan records the reason and date. See Specification-Change Categories in Phase 3.
 
 ---
 
