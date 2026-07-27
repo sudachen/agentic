@@ -214,22 +214,41 @@ The exact commands for formatting, tests, and lint are language-specific. Read t
 
 If the project's language has no dedicated workflow file, ask the user for the exact format, test, lint, and dependency-check commands before proceeding with Phase 4.
 
+### 4.0 Select the Verification Gate
+
+Select the gate before running any check:
+- **Fast gate:** The task touches files inside one package or crate only, and changes no shared API, manifest, or dependency.
+- **Dependency gate:** The task changes a shared API, a manifest, a dependency version, or a file more than one package imports.
+- **Final gate:** The task is the last task in the plan, or the change is codebase-wide.
+
+A High-Risk Category task always uses at least the Dependency gate.
+Record the selected gate in the Execution Log's Verification field.
+
 ### 4.1 Code Formatting
 Run the formatter command defined in the language-specific workflow file.
 
 ### 4.2 Run Tests
-Run tests for the **affected packages** — not the entire codebase unless the change is codebase-wide. Use the test command defined in the language-specific workflow file.
+Run tests for the **affected packages** under the Fast gate. Run tests for every package that depends on the changed interface under the Dependency gate. Run the full test suite under the Final gate. Use the test command defined in the language-specific workflow file.
 
 ### 4.3 Run Lint
-Run the linter on the **affected packages** only. Use the lint command defined in the language-specific workflow file.
+Run the linter on the **affected packages** under the Fast gate, and on every dependent package under the Dependency gate. Use the lint command defined in the language-specific workflow file.
 
 ### 4.4 Run Full Build/Dependency Check
-Ensure local changes do not break downstream dependencies. Use the check command defined in the language-specific workflow file.
+Run this check only under the Dependency gate and the Final gate. Ensure local changes do not break downstream dependencies. Use the check command defined in the language-specific workflow file.
 
 ### 4.5 Fix Problems (Circuit Breaker)
-- If any check fails, fix the issue before proceeding.
-- **CIRCUIT BREAKER:** One fix attempt is one verify-fix-verify cycle on a single task. If test or lint failures are not resolved after **2 consecutive fix attempts** on the same task, the agent MUST stop. Mark the task as `blocked` in the plan, document the error in the "Gotchas" section, and ask the user for guidance to prevent infinite fix loops.
-- Do not suppress linter warnings unless there is a justified reason documented in the plan file. See the language-specific workflow file for the exact suppression syntax to avoid.
+
+Classify every failure before attempting a fix:
+- **Implementation failure:** The code or test is wrong.
+- **Environment failure:** A missing tool, missing credential, or unavailable service outside the agent's control.
+- **Dependency failure:** An upstream package, crate, or module fails independent of this task's code.
+- **Flaky-test failure:** A test fails intermittently with no code change between runs.
+
+**CIRCUIT BREAKER:** Count only Implementation failures against the limit. One fix attempt is one verify-fix-verify cycle on a single task. If Implementation failures are not resolved after **2 consecutive fix attempts** on the same task, the agent MUST stop. Mark the task `blocked`, document the failure classification and evidence in Discovered Gotchas & Constraints, and ask the user for guidance to prevent infinite fix loops.
+
+Environment, Dependency, and Flaky-test failures never consume an Implementation fix attempt. Document the classification and evidence in Discovered Gotchas & Constraints, and ask the user for the next action if the failure blocks verification.
+
+Do not suppress linter warnings unless there is a justified reason documented in the plan file. See the language-specific workflow file for the exact suppression syntax to avoid.
 
 ### 4.6 Atomic Git Commit
 Add newly created files to the git commit.
