@@ -351,3 +351,5 @@ project-root/
 │   └── DONE_some_changes.md              ← completed, archived plan
 └── ...
 ```
+
+> **Note:** The `agentic/` directory most likely has its own nested Git repository. It is therefore **not tracked by the project's Git index**. Do not expect `git status` or `git diff` at the project root to report changes inside `agentic/`. Run Git commands inside `agentic/` itself when working on workflow or style files.
