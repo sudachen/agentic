@@ -250,15 +250,27 @@ Environment, Dependency, and Flaky-test failures never consume an Implementation
 
 Do not suppress linter warnings unless there is a justified reason documented in the plan file. See the language-specific workflow file for the exact suppression syntax to avoid.
 
-### 4.6 Atomic Git Commit
-Add newly created files to the git commit.
-Never commit plan files. The `project/` directory is local-only and git does not track it:
+### 4.6 Task-Scoped Git Staging and Commit
+
+Stage only the files listed in the task's Files to touch, plus any new file the task created:
 ```bash
-git add <new_files>
+git add <files_from_this_tasks_specification>
 ```
-Once all verification checks pass for a task, create a git commit immediately:
+Validate the staged diff before committing:
 ```bash
-git commit -am "<task summary>"
+git diff --cached --stat
+```
+Confirm the staged-file list matches the task's Files to touch exactly. Unstage any file the task did not intend to change:
+```bash
+git restore --staged <unrelated_file>
+```
+Never stage or commit a plan file. The `project/` directory is local-only and git does not track it.
+
+A task that a later task cannot revert independently is tightly coupled to it. Commit tightly coupled tasks together in one commit, and record the coupling reason in both tasks' Execution Logs. Otherwise, commit each task independently so any single task's commit reverts alone.
+
+Once the selected gate passes for the task, create the commit from the staged files only:
+```bash
+git commit -m "<task summary>"
 ```
 
 Continue to the next Task in the plan.
@@ -269,8 +281,15 @@ Continue to the next Task in the plan.
 
 Once all execution tasks are marked as completed `[x]` and all acceptance criteria are met, the plan is considered finished.
 
-Before archiving, run the full check suite on the entire workspace, not only the affected packages.
-Verify every acceptance criterion explicitly.
+Before archiving:
+1. Run the Final gate on the entire workspace or project, not only the affected packages.
+2. Verify every acceptance criterion explicitly.
+3. Record final completion evidence in a new **Final Verification** section at the end of the plan file:
+   - **Commands run** and their exit status.
+   - **Commit IDs** for every task commit.
+   - **Acceptance-criterion results:** one line per criterion in the Acceptance Criteria section.
+   - **Residual risks:** known limitations or follow-up work the plan does not cover.
+4. Set the plan's Status to `completed`.
 
 Rename the plan file: Change the prefix from `PLAN_` to `DONE_` to archive it:
 ```bash
