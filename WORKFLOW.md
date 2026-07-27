@@ -14,8 +14,55 @@ Fresh-context sessions rely on these local files for context recovery.
 
 Classify each request before Phase 1.
 
-- **Minor change:** Touches one file and changes fewer than 50 lines. Uses a reduced plan with only Summary and Task List. Phases 3 and 4 still apply in full.
+- **Minor change:** Touches one file, changes fewer than 50 lines, and matches no High-Risk Category. Uses a reduced plan with only Summary and Task List. Phases 3 and 4 still apply in full.
 - **Standard change:** Everything else. Follows all phases with the complete plan structure.
+
+### Risk Override
+
+A change matches a High-Risk Category when it touches:
+- Security controls or authentication.
+- A public API or public interface.
+- A database schema or a data migration.
+- Concurrency, shared state, or locking.
+- Deployment configuration or infrastructure.
+
+A High-Risk Category change always uses the Standard change plan, even when it touches one file and changes fewer than 50 lines.
+Record the matched category in the plan's Feature Summary.
+
+---
+
+## Plan Lifecycle
+
+Each plan has exactly one state:
+
+- **active:** The agent or the user is currently working the plan.
+- **blocked:** The circuit breaker stopped the plan. It resumes only after the user provides guidance.
+- **paused:** The user set the plan aside to work on a different plan or branch. It resumes when the user selects it again.
+- **completed:** All execution tasks are `[x]` and all acceptance criteria pass. Phase 5 archives it.
+- **stale:** No task in the plan changed status in the last 14 days. Phase 0 asks the user to resume, pause, or discard it.
+
+Each plan records this metadata directly below the Workflow Reference blockquote:
+- **Branch:** The Git branch the plan targets.
+- **Owner:** The user or agent session driving the plan.
+- **Status:** One of the five plan states above.
+- **Risk Tier:** `standard-risk` or the matched High-Risk Category.
+- **Verification Tier:** The verification gate the plan uses by default. See Verification Gates.
+- **Last Update:** ISO 8601 timestamp of the most recent Execution Log change.
+
+Only one plan may hold Status `active` per branch. A plan on another branch never blocks work on the current branch.
+
+---
+
+## Verification Gates
+
+Phase 4 selects one of three gates for each task:
+
+- **Fast gate:** Formatter, tests for the affected package, and lint for the affected package.
+- **Dependency gate:** Fast gate checks, plus checks for shared API, manifest, dependency, or cross-package impact.
+- **Final gate:** Complete workspace or project checks, plus explicit verification of every acceptance criterion.
+
+Phase 4 and the language-specific workflow files define which change types select each gate.
+Phase 5 always runs the Final gate before archiving a plan.
 
 ---
 
