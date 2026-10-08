@@ -10,11 +10,18 @@ Git must not track plan files. Plan files exist only on the local machine.
 Users exclude `project/` through a global ignore file, such as `~/.config/git/ignore`.
 Fresh-context sessions rely on these local files for context recovery.
 
+## Language Notes
+
+The `agentic/<lang>/notes/` directory stores durable, language-specific learnings captured during development: conventions, toolchain gotchas, and reusable patterns that outlive any single plan.
+Create the `notes/` directory inside the relevant language folder when writing the first note. Give each note a short `snake_case` filename.
+Consult these notes during Phase 1 triage and Phase 2 plan drafting.
+When Phase 3–4 work exposes a reusable, language-level fact (not a project-specific detail), record it in `agentic/<lang>/notes/` in addition to the plan's Discovered Gotchas & Constraints.
+
 ## Change Tiers
 
 Classify each request before Phase 1.
 
-- **Minor change:** Touches one file, changes fewer than 50 lines, and matches no High-Risk Category. Uses a reduced plan with only Summary and Task List. Phases 3 and 4 still apply in full.
+- **Minor change:** Touches one file, changes at most 50 lines measured as insertions plus deletions in `git diff --stat`, and matches no High-Risk Category. Uses a reduced plan with only Summary and Task List. Phases 3 and 4 still apply in full.
 - **Standard change:** Everything else. Follows all phases with the complete plan structure.
 
 ### Risk Override
@@ -45,11 +52,15 @@ Each plan records this metadata directly below the Workflow Reference blockquote
 - **Branch:** The Git branch the plan targets.
 - **Owner:** The user or agent session driving the plan.
 - **Status:** One of the five plan states above.
-- **Risk Tier:** `standard-risk` or the matched High-Risk Category.
-- **Verification Tier:** The verification gate the plan uses by default. See Verification Gates.
+- **Risk Tier:** `normal`, or `high:<category>` naming the matched High-Risk Category.
+- **Verification Tier:** The minimum gate any task in the plan may use: `dependency` when the plan contains a High-Risk Category task, otherwise `fast`. Section 4.0 raises the gate for individual tasks as required; it never lowers a task below this minimum. See Verification Gates.
 - **Last Update:** ISO 8601 timestamp of the most recent Execution Log change.
 
-Only one plan may hold Status `active` per branch. A plan on another branch never blocks work on the current branch.
+Only one plan may hold Status `active` per branch. A plan on another branch never blocks work on the current branch. This rule is branch-scoped: with Git worktrees, plans on branches checked out in other worktrees do not block the current branch either.
+
+When the circuit breaker sets a task to `blocked`, set the plan's Status to `blocked` as well. When the user provides guidance and the task resumes, return the plan's Status to `active`.
+
+If the user switches branches while a plan is `active`, set that plan's Status to `paused`. If a plan's recorded Branch no longer exists because it was deleted or merged, ask the user to discard the plan or re-target it to a new branch.
 
 ---
 
@@ -86,6 +97,7 @@ Before starting any new work, run these checks in order:
    - A plan with Status `paused`: ask the user whether to resume it or start a new plan.
    - A plan with a Last Update more than 14 days old: set its Status to `stale` and ask the user to resume, pause, or discard it.
    - No matching plan exists: proceed to Phase 1 to start a new plan.
+5. **Baseline check:** When the new or resumed work touches executable code, run the project's test suite once before the first edit. Record any failure present before the first edit in the plan's Discovered Gotchas & Constraints as a Baseline failure. A Baseline failure never counts against the circuit-breaker limit in Phase 4.5.
 
 Do not create a new plan on a branch that already has a plan with Status `active`.
 
@@ -95,10 +107,11 @@ Do not create a new plan on a branch that already has a plan with Status `active
 
 Before writing any code, the agent must:
 
-- **Classify risk.** Check the request against the High-Risk Categories in Change Tiers. Record the matched category, or `standard-risk` if none matches.
+- **Classify risk.** Check the request against the High-Risk Categories in Change Tiers. Record the matched category, or `normal` if none matches.
 - **Identify blocking ambiguities.** A blocking ambiguity is a requirement gap that changes the feature's scope, acceptance criteria, or public interface depending on its answer.
 - **Identify safe assumptions.** A safe assumption is a reasonable default that changes neither scope, acceptance criteria, nor public interface. Record it in the plan instead of asking the user.
 - **Identify discoverable questions.** A discoverable question has an answer available in the codebase, existing documentation, or version control history. Answer it through exploration instead of asking the user.
+- **Consult language notes.** Review `agentic/<lang>/notes/` (if present) for durable conventions, toolchain gotchas, and patterns relevant to the request.
 - **Identify design issues** — potential architectural concerns, performance implications, security risks, or maintainability problems.
 - **Propose improvements** — suggest better alternatives, simpler approaches, or critical consequences the user may not have considered.
 - **Ask the user** to resolve every blocking ambiguity and to choose between proposed options.
@@ -133,6 +146,7 @@ Create a single plan and tracking file in the `project/` directory at the reposi
   2. **Execution Tasks:** The task list from Phase 3. State the Triad Test Plan inside each task's Technical Details & Contracts field instead of writing a separate Testing Strategy section.
   A Minor change plan omits the standalone Architecture & Technical Blueprint, Testing Strategy, Dependencies, Acceptance Criteria, and Discovered Gotchas & Constraints sections. It never omits the Triad Test Plan itself.
 - A High-Risk Category always uses the Standard change plan sections, regardless of file count or line count.
+- Keep plans compact enough to survive context resets. Split a plan that exceeds roughly ten tasks into multiple plans, one per independently committable unit.
 
 After Phase 2, each task's Specification is fixed.
 Amend it only in place, with a dated note describing the deviation.
@@ -170,7 +184,7 @@ Each item in the "Execution Tasks" section must use this format:
     - **Verification:** Test and lint results.
 ```
 
-When a task is completed, change `[ ]` to `[x]`, update the status, and document the changes.
+When a task is completed, change `[ ]` to `[x]`, update the status, and document the changes. Record decisions, artifact names, and verification outcomes in the Execution Log — not full diffs or raw test output.
 
 Status rules:
 - Only the circuit breaker may set `blocked`. A `blocked` task resumes when the user provides guidance.
@@ -211,6 +225,7 @@ The exact commands for formatting, tests, and lint are language-specific. Read t
 | Rust | [rust/RUST_WORKFLOW.md](rust/RUST_WORKFLOW.md) |
 | Go | [go/GO_WORKFLOW.md](go/GO_WORKFLOW.md) |
 | Python | [python/PYTHON_WORKFLOW.md](python/PYTHON_WORKFLOW.md) |
+| F# | [fs/FS_WORKFLOW.md](fs/FS_WORKFLOW.md) |
 
 If the project's language has no dedicated workflow file, ask the user for the exact format, test, lint, and dependency-check commands before proceeding with Phase 4.
 
@@ -240,13 +255,14 @@ Run this check only under the Dependency gate and the Final gate. Ensure local c
 
 Classify every failure before attempting a fix:
 - **Implementation failure:** The code or test is wrong.
+- **Baseline failure:** The failure was present before the task's first edit, confirmed by the Phase 0 baseline check or by stashing the task's changes and re-running the check.
 - **Environment failure:** A missing tool, missing credential, or unavailable service outside the agent's control.
 - **Dependency failure:** An upstream package, crate, or module fails independent of this task's code.
 - **Flaky-test failure:** A test fails intermittently with no code change between runs.
 
 **CIRCUIT BREAKER:** Count only Implementation failures against the limit. One fix attempt is one verify-fix-verify cycle on a single task. If Implementation failures are not resolved after **2 consecutive fix attempts** on the same task, the agent MUST stop. Mark the task `blocked`, document the failure classification and evidence in Discovered Gotchas & Constraints, and ask the user for guidance to prevent infinite fix loops.
 
-Environment, Dependency, and Flaky-test failures never consume an Implementation fix attempt. Document the classification and evidence in Discovered Gotchas & Constraints, and ask the user for the next action if the failure blocks verification.
+Environment, Dependency, Baseline, and Flaky-test failures never consume an Implementation fix attempt. Document the classification and evidence in Discovered Gotchas & Constraints, and ask the user for the next action if the failure blocks verification.
 
 Do not suppress linter warnings unless there is a justified reason documented in the plan file. See the language-specific workflow file for the exact suppression syntax to avoid.
 
@@ -264,6 +280,11 @@ Confirm the staged-file list matches the task's Files to touch exactly. Unstage 
 ```bash
 git restore --staged <unrelated_file>
 ```
+Review the staged diff for credentials, tokens, or private keys:
+```bash
+git diff --cached
+```
+If the diff contains a secret, unstage the file, move the secret into an untracked configuration file or an environment variable, and record the incident in Discovered Gotchas & Constraints.
 Never stage or commit a plan file. The `project/` directory is local-only and git does not track it.
 
 A task that a later task cannot revert independently is tightly coupled to it. Commit tightly coupled tasks together in one commit, and record the coupling reason in both tasks' Execution Logs. Otherwise, commit each task independently so any single task's commit reverts alone.
@@ -272,6 +293,7 @@ Once the selected gate passes for the task, create the commit from the staged fi
 ```bash
 git commit -m "<task summary>"
 ```
+`<task summary>` is a free-form one-line description of the completed task. This workflow enforces no commit-message convention; follow any convention the repository already uses.
 
 Continue to the next Task in the plan.
 
@@ -290,6 +312,13 @@ Before archiving:
    - **Acceptance-criterion results:** one line per criterion in the Acceptance Criteria section.
    - **Residual risks:** known limitations or follow-up work the plan does not cover.
 4. Set the plan's Status to `completed`.
+5. **Finalize the associated proposal (if any):** When the plan's Feature Summary references a proposal in `docs/proposals/` (see `agentic/ARCHITECT.md`), the proposal is implemented. Update its Status to `implemented`, set its `Implemented` field to the current ISO 8601 date, and move it to `docs/proposals/done/` with a `<yymmdd>_` filename prefix (the implementation date in `YYMMDD` format, so the directory sorts by finalization date):
+```bash
+git mv docs/proposals/<name>.md docs/proposals/done/<yymmdd>_<name>.md
+git commit -m "Mark architecture proposal implemented: <name>"
+```
+
+If the Final gate or any acceptance criterion fails, do not archive the plan. Classify the failure as in Phase 4.5. For an Implementation failure, append a remediation task to the Execution Tasks section and resume at Phase 3 for that task; the circuit breaker applies to remediation tasks the same as to any other task. For any other failure class, ask the user for the next action.
 
 Rename the plan file: Change the prefix from `PLAN_` to `DONE_` to archive it:
 ```bash
@@ -326,8 +355,8 @@ Feature Request
 └────────────────────┬────────────────────┘
                      ▼
 ┌─────────────────────────────────────────┐
-│ Phase 5: Finalize & Archive Plan        │  ← Rename to DONE_<name>.md
-└─────────────────────────────────────────┘
+│ Phase 5: Finalize & Archive Plan        │  ← Rename to DONE_<name>.md; move proposal
+└─────────────────────────────────────────┘    to docs/proposals/done/
 ```
 
 ---
@@ -339,13 +368,7 @@ project-root/
 ├── agentic/
 │   ├── WORKFLOW.md                       ← this file
 │   ├── STYLE.md                          ← writing style standard
-│   ├── rust/
-│   │   ├── RUST_WORKFLOW.md              ← Rust-specific Phase 4 commands
-│   │   └── REVIEW.md                     ← code review workflow
-│   ├── go/
-│   │   └── GO_WORKFLOW.md                ← Go-specific Phase 4 commands
-│   └── python/
-│       └── PYTHON_WORKFLOW.md            ← Python-specific Phase 4 commands
+│   └── <language>/                       ← language-specific workflow and review files; the Phase 4 table is the registry
 ├── project/
 │   ├── PLAN_new_feature.md               ← active feature plan
 │   └── DONE_some_changes.md              ← completed, archived plan
