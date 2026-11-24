@@ -208,6 +208,7 @@ Note: `project/` plan files are local-only and not tracked by Git. Reference the
 Describe how the change can be tested. Cover:
 - **Unit tests:** Which modules or functions need new tests.
 - **Integration tests:** Which cross-component or API boundary tests the change requires.
+- **End-to-end tests:** When `docs/TESTING_NOTES.md` exists, it defines the project's e2e testing infrastructure and how to use it; describe which e2e scenarios the change requires or affects. When `docs/TESTING_NOTES.md` does not exist, no additional e2e tests are required — state this explicitly and omit e2e coverage.
 - **Invariant checks:** Which architectural invariants the change introduces, modifies, or removes.
 - **Migration or rollback tests:** Apply when the change alters data layout, storage, or public API.
 

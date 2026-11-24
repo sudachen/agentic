@@ -77,6 +77,18 @@ Phase 5 always runs the Final gate before archiving a plan.
 
 ---
 
+## End-to-End Testing
+
+Projects using this framework may define their own end-to-end (e2e) testing infrastructure and scripts.
+Check whether `docs/TESTING_NOTES.md` exists at the repository root:
+
+- **If `docs/TESTING_NOTES.md` exists:** It defines how to use the project's e2e testing infrastructure. Read it during Phase 1 triage, reference relevant e2e scenarios in the plan's Testing Strategy, and run the applicable e2e tests as part of the Final gate in Phase 5 (and in Phase 4 for any task whose acceptance criteria depend on e2e verification). Record e2e results in the Execution Log's Verification field.
+- **If `docs/TESTING_NOTES.md` does not exist:** No additional e2e tests are required. The Testing Triad in Phase 3 and the standard verification gates are sufficient.
+
+Never invent or assume e2e infrastructure that `docs/TESTING_NOTES.md` does not describe.
+
+---
+
 ## Writing Style Standard
 
 > **Note:** All plans and documentation under this workflow follow [STYLE.md](STYLE.md).
